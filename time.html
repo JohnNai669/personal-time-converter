@@ -690,10 +690,10 @@
 
     /* Right Card Uniform Styles (All 5 have the exact same dimensions) */
     .time-card.right-card {
-      display: flex;
-      flex-direction: row;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(185px, 210px) minmax(0, 0.95fr);
       align-items: center;
-      justify-content: space-between;
+      gap: 14px;
       padding: 14px 22px;
       min-height: 98px;
     }
@@ -708,6 +708,8 @@
     .right-card .country-flag {
       font-size: 32px;
       line-height: 1;
+      width: 36px;
+      text-align: center;
       filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
       flex-shrink: 0;
     }
@@ -748,6 +750,14 @@
       align-items: flex-end;
       text-align: right;
       flex-shrink: 0;
+    }
+
+    .right-card .time-digits-group {
+      padding: 4px 0;
+    }
+
+    body.is-convert-mode .right-card .time-digits-group {
+      padding: 6px 12px;
     }
 
     /* FOOTER BAR */
@@ -818,6 +828,713 @@
       pointer-events: auto;
     }
 
+    /* WEATHER SUMMARY ON LOCATION CARDS */
+    .weather-card-summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--surface-border);
+      border-radius: 11px;
+      cursor: pointer;
+      transition: var(--transition);
+      user-select: none;
+      text-align: left;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .right-card .weather-card-summary {
+      width: 100%;
+      justify-self: center;
+    }
+
+    .weather-card-summary:hover {
+      background: rgba(56, 189, 248, 0.1);
+      border-color: rgba(56, 189, 248, 0.4);
+      box-shadow: 0 4px 18px rgba(6, 182, 212, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .weather-card-summary:active {
+      transform: translateY(0);
+    }
+
+    .weather-card-summary:focus-visible {
+      outline: 2px solid var(--accent-cyan);
+      outline-offset: 2px;
+    }
+
+    .weather-summary-centered {
+      margin: 4px auto 0;
+      justify-content: center;
+    }
+
+    .weather-summary-main {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .weather-summary-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .weather-summary-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .weather-summary-temp-desc {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    .weather-summary-temp {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: #38bdf8;
+      font-size: 13.5px;
+    }
+
+    .weather-summary-dot {
+      color: var(--text-subtle);
+      font-size: 11px;
+    }
+
+    .weather-summary-desc {
+      font-size: 12px;
+      color: var(--text-main);
+      font-weight: 500;
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .weather-summary-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* Convert View Restriction: Weather summary is disabled and NOT clickable in Convert mode */
+    body.is-convert-mode .weather-card-summary {
+      cursor: default !important;
+      pointer-events: none !important;
+      opacity: 0.55;
+      filter: grayscale(0.2);
+    }
+
+    body.is-convert-mode .weather-card-summary:hover {
+      background: rgba(255, 255, 255, 0.04) !important;
+      border-color: var(--surface-border) !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+
+    /* WEATHER POPUP / MODAL */
+    .weather-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 5, 8, 0.78);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .weather-modal-backdrop.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .weather-modal-dialog {
+      background: linear-gradient(165deg, rgba(20, 28, 48, 0.96) 0%, rgba(9, 13, 24, 0.98) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      border-radius: 22px;
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75), 0 0 35px rgba(6, 182, 212, 0.16);
+      width: 100%;
+      max-width: 660px;
+      max-height: 88vh;
+      max-height: 88dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: scale(0.95) translateY(12px);
+      transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .weather-modal-backdrop.show .weather-modal-dialog {
+      transform: scale(1) translateY(0);
+    }
+
+    /* Modal Header */
+    .weather-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--surface-border);
+      background: rgba(255, 255, 255, 0.02);
+      flex-shrink: 0;
+    }
+
+    .weather-modal-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .weather-modal-flag-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--surface-border);
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .weather-modal-title {
+      font-size: 19px;
+      font-weight: 750;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .weather-modal-date {
+      font-size: 12.5px;
+      color: var(--accent-cyan);
+      font-weight: 500;
+      margin-top: 2px;
+      letter-spacing: 0.1px;
+    }
+
+    .weather-modal-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: var(--transition);
+      outline: none;
+    }
+
+    .weather-modal-close:hover {
+      background: rgba(244, 63, 94, 0.18);
+      border-color: rgba(244, 63, 94, 0.45);
+      color: #fb7185;
+      transform: scale(1.06);
+    }
+
+    /* Modal Scrollable Body */
+    .weather-modal-body {
+      padding: 26px 28px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .weather-modal-body::-webkit-scrollbar {
+      width: 7px;
+    }
+
+    .weather-modal-body::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .weather-modal-body::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+    }
+
+    .weather-modal-body::-webkit-scrollbar-thumb:hover {
+      background: rgba(56, 189, 248, 0.4);
+    }
+
+    /* Loading & Error States */
+    .weather-modal-loading,
+    .weather-modal-error {
+      padding: 48px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .weather-spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(56, 189, 248, 0.2);
+      border-top-color: var(--accent-cyan);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .btn-weather-retry {
+      padding: 7px 18px;
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.45);
+      color: #93c5fd;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 4px;
+    }
+
+    .btn-weather-retry:hover {
+      background: rgba(59, 130, 246, 0.35);
+      color: #ffffff;
+    }
+
+    /* Section 1: Today's Daily Average Weather Summary */
+    .weather-hero-section {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.55) 0%, rgba(15, 23, 42, 0.65) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 16px;
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .weather-hero-main {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .weather-hero-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--surface-border);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .weather-hero-icon svg {
+      width: 34px;
+      height: 34px;
+    }
+
+    .weather-hero-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .weather-hero-temp-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .weather-hero-temp {
+      font-family: var(--font-mono);
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: #ffffff;
+      line-height: 1;
+    }
+
+    .weather-hero-badge {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      color: #38bdf8;
+    }
+
+    .weather-hero-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .weather-hero-meta {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      width: 100%;
+    }
+
+    .hero-meta-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 9px 6px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid var(--surface-border);
+      text-align: center;
+      min-width: 0;
+    }
+
+    .hero-meta-label {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .hero-meta-val {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    /* Section Titles & Headers */
+    .weather-section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .weather-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .weather-section-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.2px;
+    }
+
+    .weather-section-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--surface-border);
+    }
+
+    .weather-section-divider {
+      height: 1px;
+      background: var(--surface-border);
+      margin: 2px 0;
+    }
+
+    /* Section 2: Hourly Forecast Scroll */
+    .hourly-forecast-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 6px 2px 14px;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .hourly-forecast-scroll::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .hourly-forecast-scroll::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 9999px;
+    }
+
+    .hourly-forecast-scroll::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.3);
+      border-radius: 9999px;
+    }
+
+    .hourly-forecast-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(56, 189, 248, 0.6);
+    }
+
+    .hourly-card {
+      flex: 0 0 84px;
+      min-width: 84px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      transition: var(--transition);
+      text-align: center;
+      position: relative;
+    }
+
+    .hourly-card:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .hourly-card.is-current-hour {
+      background: linear-gradient(165deg, rgba(6, 182, 212, 0.18) 0%, rgba(59, 130, 246, 0.12) 100%);
+      border: 1.5px solid var(--accent-cyan);
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.25);
+    }
+
+    .hourly-now-pill {
+      position: absolute;
+      top: -8px;
+      font-size: 8.5px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      background: var(--accent-cyan);
+      color: #040810;
+      padding: 1px 6px;
+      border-radius: 9999px;
+      box-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
+    }
+
+    .hourly-time {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .hourly-card.is-current-hour .hourly-time {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .hourly-icon {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+    }
+
+    .hourly-temp {
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .hourly-precip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-subtle);
+    }
+
+    .hourly-precip.has-rain {
+      color: #38bdf8;
+    }
+
+    .hourly-wind {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-subtle);
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    /* Section 3: 7-Day Forecast */
+    .weekly-forecast-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .weekly-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 85px 95px;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--surface-border);
+      border-radius: 11px;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .weekly-row:hover {
+      background: rgba(255, 255, 255, 0.055);
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateX(2px);
+    }
+
+    .weekly-row.is-today {
+      background: rgba(56, 189, 248, 0.06);
+      border-color: rgba(56, 189, 248, 0.25);
+    }
+
+    .weekly-row.is-selected {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: rgba(56, 189, 248, 0.5);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.2);
+    }
+
+    .weekly-row.is-selected .weekly-day-name {
+      color: #38bdf8;
+    }
+
+    .weekly-day-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .weekly-day-name {
+      font-size: 13px;
+      font-weight: 650;
+      color: #ffffff;
+    }
+
+    .weekly-row.is-today .weekly-day-name {
+      color: #38bdf8;
+    }
+
+    .weekly-date-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .weekly-condition-col {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .weekly-icon {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .weekly-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .weekly-precip-col {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .weekly-precip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-subtle);
+    }
+
+    .weekly-precip.has-rain {
+      color: #38bdf8;
+    }
+
+    .weekly-temp-col {
+      display: flex;
+      align-items: baseline;
+      justify-content: flex-end;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+    }
+
+    .weekly-temp-max {
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .weekly-temp-slash {
+      color: var(--text-subtle);
+      font-size: 11px;
+    }
+
+    .weekly-temp-min {
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
     /* RESPONSIVE LAYOUT */
     @media (max-width: 1024px) {
       body {
@@ -857,21 +1574,100 @@
       .header-controls {
         width: 100%;
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .left-section .time-card {
+        min-height: auto;
+        padding: 24px 18px;
       }
 
       .time-card.right-card {
+        display: flex;
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
+        padding: 16px 18px;
       }
 
       .card-right-time {
         align-items: flex-start;
+        text-align: left;
         width: 100%;
       }
 
       .digit-input {
         font-size: 30px !important;
+      }
+
+      .weather-summary-centered {
+        align-self: center;
+        margin: 4px auto 0;
+      }
+
+      .right-card .weather-card-summary {
+        align-self: flex-start;
+        width: auto;
+        justify-self: auto;
+      }
+
+      footer.app-footer {
+        justify-content: center;
+        text-align: center;
+      }
+
+      .footer-presets {
+        justify-content: center;
+      }
+
+      .weather-modal-backdrop {
+        padding: 10px;
+      }
+
+      .weather-modal-dialog {
+        max-height: 94vh;
+        max-height: 94dvh;
+        border-radius: 18px;
+      }
+
+      .weather-modal-header {
+        padding: 14px 18px;
+      }
+
+      .weather-modal-body {
+        padding: 18px 16px 22px;
+        gap: 20px;
+      }
+
+      .weather-hero-section {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px;
+      }
+
+      .weather-hero-meta {
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .hero-meta-item {
+        text-align: center;
+      }
+
+      .hero-meta-val {
+        justify-content: center;
+      }
+
+      .weekly-row {
+        grid-template-columns: 85px 1fr 65px 75px;
+        padding: 10px 10px;
+        gap: 6px;
+      }
+
+      .weekly-desc {
+        display: none;
       }
     }
   </style>
@@ -939,16 +1735,38 @@
           <div class="left-header-centered">
             <span class="country-flag-big">🇭🇺</span>
             <h2 class="country-title-big">Hungary</h2>
-            <div class="sub-loc-big">Budapest · Central Europe</div>
+            <div class="sub-loc-big">Pécs · Central Europe</div>
             <div class="badge-row-centered">
               <span class="zone-pill" id="zone-pill-hungary">CET / CEST</span>
               <span class="offset-pill offset-same">Base Reference</span>
               <div class="solar-status" id="solar-hungary">☀️ Daytime</div>
             </div>
+
+            <!-- Weather Summary (Live Clock View) -->
+            <div class="weather-card-summary weather-summary-centered" id="weather-summary-hungary" data-city="hungary"
+              role="button" tabindex="0" title="Click for Pécs weather forecast">
+              <div class="weather-summary-main">
+                <span class="weather-summary-icon" id="weather-icon-hungary">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41" stroke="#f59e0b" />
+                    <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#94a3b8" />
+                  </svg>
+                </span>
+                <div class="weather-summary-text">
+                  <div class="weather-summary-temp-desc">
+                    <span class="weather-summary-temp" id="weather-temp-hungary">--°C</span>
+                    <span class="weather-summary-dot">·</span>
+                    <span class="weather-summary-desc" id="weather-desc-hungary">Loading…</span>
+                  </div>
+                  <span class="weather-summary-label">Daily Average</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Centered Analog Clock -->
-          <div class="analog-clock-wrap" title="Live Budapest Time">
+          <div class="analog-clock-wrap" title="Live Pécs Time">
             <canvas id="analogCanvas" class="analog-canvas" width="260" height="260"></canvas>
           </div>
 
@@ -1014,6 +1832,28 @@
             </div>
           </div>
 
+          <!-- Weather Summary (Live Clock View) -->
+          <div class="weather-card-summary" id="weather-summary-myanmar" data-city="myanmar" role="button" tabindex="0"
+            title="Click for Yangon weather forecast">
+            <div class="weather-summary-main">
+              <span class="weather-summary-icon" id="weather-icon-myanmar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41" stroke="#f59e0b" />
+                  <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#94a3b8" />
+                </svg>
+              </span>
+              <div class="weather-summary-text">
+                <div class="weather-summary-temp-desc">
+                  <span class="weather-summary-temp" id="weather-temp-myanmar">--°C</span>
+                  <span class="weather-summary-dot">·</span>
+                  <span class="weather-summary-desc" id="weather-desc-myanmar">Loading…</span>
+                </div>
+                <span class="weather-summary-label">Daily Average</span>
+              </div>
+            </div>
+          </div>
+
           <div class="card-right-time">
             <div class="time-digits-group" title="Click to edit Myanmar time">
               <input type="text" class="digit-input hour-input" id="hour-myanmar" data-city="myanmar" maxlength="2"
@@ -1051,6 +1891,28 @@
             </div>
           </div>
 
+          <!-- Weather Summary (Live Clock View) -->
+          <div class="weather-card-summary" id="weather-summary-thailand" data-city="thailand" role="button"
+            tabindex="0" title="Click for Bangkok weather forecast">
+            <div class="weather-summary-main">
+              <span class="weather-summary-icon" id="weather-icon-thailand">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41" stroke="#f59e0b" />
+                  <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#94a3b8" />
+                </svg>
+              </span>
+              <div class="weather-summary-text">
+                <div class="weather-summary-temp-desc">
+                  <span class="weather-summary-temp" id="weather-temp-thailand">--°C</span>
+                  <span class="weather-summary-dot">·</span>
+                  <span class="weather-summary-desc" id="weather-desc-thailand">Loading…</span>
+                </div>
+                <span class="weather-summary-label">Daily Average</span>
+              </div>
+            </div>
+          </div>
+
           <div class="card-right-time">
             <div class="time-digits-group" title="Click to edit Thailand time">
               <input type="text" class="digit-input hour-input" id="hour-thailand" data-city="thailand" maxlength="2"
@@ -1079,11 +1941,33 @@
                 <span class="offset-pill offset-behind" id="offset-uk">−1h 00m</span>
               </div>
               <div class="sub-loc">
-                <span>London</span>
+                <span>Cardiff</span>
                 <span>·</span>
                 <span class="zone-pill" id="zone-pill-uk">UTC +0 / +1</span>
                 <span>·</span>
                 <span class="solar-status" id="solar-uk">☀️ Daytime</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Weather Summary (Live Clock View) -->
+          <div class="weather-card-summary" id="weather-summary-uk" data-city="uk" role="button" tabindex="0"
+            title="Click for Cardiff weather forecast">
+            <div class="weather-summary-main">
+              <span class="weather-summary-icon" id="weather-icon-uk">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41" stroke="#f59e0b" />
+                  <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#94a3b8" />
+                </svg>
+              </span>
+              <div class="weather-summary-text">
+                <div class="weather-summary-temp-desc">
+                  <span class="weather-summary-temp" id="weather-temp-uk">--°C</span>
+                  <span class="weather-summary-dot">·</span>
+                  <span class="weather-summary-desc" id="weather-desc-uk">Loading…</span>
+                </div>
+                <span class="weather-summary-label">Daily Average</span>
               </div>
             </div>
           </div>
@@ -1105,21 +1989,43 @@
           </div>
         </article>
 
-        <!-- BOX 4: PRAGUE -->
+        <!-- BOX 4: CZECH REPUBLIC -->
         <article class="time-card right-card" id="card-prague" data-city="prague">
           <div class="card-left-info">
             <span class="country-flag">🇨🇿</span>
             <div class="country-texts">
               <div class="right-card-title-row">
-                <h2>Prague</h2>
+                <h2>Czech Republic</h2>
                 <span class="offset-pill offset-same" id="offset-prague">Same Zone</span>
               </div>
               <div class="sub-loc">
-                <span>Czech Republic</span>
+                <span>Prague</span>
                 <span>·</span>
                 <span class="zone-pill" id="zone-pill-prague">CET / CEST</span>
                 <span>·</span>
                 <span class="solar-status" id="solar-prague">☀️ Daytime</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Weather Summary (Live Clock View) -->
+          <div class="weather-card-summary" id="weather-summary-prague" data-city="prague" role="button" tabindex="0"
+            title="Click for Prague weather forecast">
+            <div class="weather-summary-main">
+              <span class="weather-summary-icon" id="weather-icon-prague">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41" stroke="#f59e0b" />
+                  <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#94a3b8" />
+                </svg>
+              </span>
+              <div class="weather-summary-text">
+                <div class="weather-summary-temp-desc">
+                  <span class="weather-summary-temp" id="weather-temp-prague">--°C</span>
+                  <span class="weather-summary-dot">·</span>
+                  <span class="weather-summary-desc" id="weather-desc-prague">Loading…</span>
+                </div>
+                <span class="weather-summary-label">Daily Average</span>
               </div>
             </div>
           </div>
@@ -1142,21 +2048,43 @@
           </div>
         </article>
 
-        <!-- BOX 5: LOS ANGELES -->
+        <!-- BOX 5: UNITED STATES -->
         <article class="time-card right-card" id="card-la" data-city="la">
           <div class="card-left-info">
             <span class="country-flag">🇺🇸</span>
             <div class="country-texts">
               <div class="right-card-title-row">
-                <h2>Los Angeles</h2>
+                <h2>United States</h2>
                 <span class="offset-pill offset-behind" id="offset-la">−9h 00m</span>
               </div>
               <div class="sub-loc">
-                <span>United States</span>
+                <span>Los Angeles</span>
                 <span>·</span>
                 <span class="zone-pill" id="zone-pill-la">UTC −8 / −7</span>
                 <span>·</span>
                 <span class="solar-status" id="solar-la">🌙 Night</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Weather Summary (Live Clock View) -->
+          <div class="weather-card-summary" id="weather-summary-la" data-city="la" role="button" tabindex="0"
+            title="Click for Los Angeles weather forecast">
+            <div class="weather-summary-main">
+              <span class="weather-summary-icon" id="weather-icon-la">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41" stroke="#f59e0b" />
+                  <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#94a3b8" />
+                </svg>
+              </span>
+              <div class="weather-summary-text">
+                <div class="weather-summary-temp-desc">
+                  <span class="weather-summary-temp" id="weather-temp-la">--°C</span>
+                  <span class="weather-summary-dot">·</span>
+                  <span class="weather-summary-desc" id="weather-desc-la">Loading…</span>
+                </div>
+                <span class="weather-summary-label">Daily Average</span>
               </div>
             </div>
           </div>
@@ -1198,6 +2126,131 @@
 
   </div>
 
+  <!-- WEATHER MODAL / POPUP -->
+  <div class="weather-modal-backdrop" id="weatherModalBackdrop" aria-hidden="true" role="dialog" aria-modal="true"
+    aria-labelledby="weatherModalTitle">
+    <div class="weather-modal-dialog" id="weatherModalDialog">
+      <!-- Modal Header -->
+      <header class="weather-modal-header">
+        <div class="weather-modal-title-group">
+          <div class="weather-modal-flag-wrap">
+            <span class="weather-modal-flag" id="weatherModalFlag">🇭🇺</span>
+          </div>
+          <div>
+            <h2 class="weather-modal-title" id="weatherModalTitle">Pécs, Hungary</h2>
+            <div class="weather-modal-date" id="weatherModalDate">Thursday, Nov 13, 2026 · Local Date</div>
+          </div>
+        </div>
+        <button type="button" class="weather-modal-close" id="weatherModalCloseBtn" aria-label="Close weather popup"
+          title="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </header>
+
+      <!-- Modal Body -->
+      <div class="weather-modal-body" id="weatherModalBody">
+        <!-- Loading State -->
+        <div class="weather-modal-loading" id="weatherModalLoading" style="display: none;">
+          <div class="weather-spinner"></div>
+          <span>Loading forecast data…</span>
+        </div>
+
+        <!-- Error State -->
+        <div class="weather-modal-error" id="weatherModalError" style="display: none;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <p id="weatherErrorMsg">Failed to load weather forecast.</p>
+          <button type="button" class="btn-weather-retry" id="weatherRetryBtn">Retry</button>
+        </div>
+
+        <!-- Main Forecast Content -->
+        <div class="weather-modal-content" id="weatherModalContent">
+          <!-- 1. Today's Daily Average Weather Summary -->
+          <section class="weather-hero-section">
+            <div class="weather-hero-main">
+              <div class="weather-hero-icon" id="weatherHeroIcon">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41" stroke="#f59e0b" />
+                  <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#94a3b8" />
+                </svg>
+              </div>
+              <div class="weather-hero-info">
+                <div class="weather-hero-temp-row">
+                  <span class="weather-hero-temp" id="weatherHeroAvgTemp">--°C</span>
+                  <span class="weather-hero-badge">Daily Average</span>
+                </div>
+                <div class="weather-hero-desc" id="weatherHeroDesc">Loading…</div>
+              </div>
+            </div>
+
+            <div class="weather-hero-meta">
+              <div class="hero-meta-item">
+                <span class="hero-meta-label">Now</span>
+                <span class="hero-meta-val" id="weatherHeroCurrentTemp">--°C</span>
+              </div>
+              <div class="hero-meta-item">
+                <span class="hero-meta-label">Feels Like</span>
+                <span class="hero-meta-val" id="weatherHeroFeelsLike">--°C</span>
+              </div>
+              <div class="hero-meta-item">
+                <span class="hero-meta-label">High / Low</span>
+                <span class="hero-meta-val" id="weatherHeroHighLow">--° / --°</span>
+              </div>
+              <div class="hero-meta-item">
+                <span class="hero-meta-label">Rain Prob</span>
+                <span class="hero-meta-val" id="weatherHeroRainProb">💧 --%</span>
+              </div>
+              <div class="hero-meta-item">
+                <span class="hero-meta-label">Humidity</span>
+                <span class="hero-meta-val" id="weatherHeroHumidity">--%</span>
+              </div>
+              <div class="hero-meta-item">
+                <span class="hero-meta-label">Wind</span>
+                <span class="hero-meta-val" id="weatherHeroWind">-- km/h</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="weather-section-divider"></div>
+
+          <!-- 2. Today's 24-Hour Forecast Section -->
+          <section class="weather-section">
+            <div class="weather-section-header">
+              <h3 class="weather-section-title" id="weatherHourlyTitle">Today's Hourly Forecast</h3>
+              <span class="weather-section-badge" id="weatherHourlyDateBadge">24-Hour (00:00 – 23:00)</span>
+            </div>
+            <div class="hourly-forecast-scroll" id="weatherHourlyScroll" tabindex="0" role="region"
+              aria-label="Hourly weather scroll">
+              <!-- 24 hourly cards populated by JavaScript -->
+            </div>
+          </section>
+
+          <div class="weather-section-divider"></div>
+
+          <!-- 3. Seven-Day Weather Forecast Section -->
+          <section class="weather-section">
+            <div class="weather-section-header">
+              <h3 class="weather-section-title">7-Day Forecast</h3>
+              <span class="weather-section-badge">Consecutive Days</span>
+            </div>
+            <div class="weekly-forecast-list" id="weatherWeeklyList">
+              <!-- 7 daily rows populated by JavaScript -->
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST NOTIFICATION -->
   <div class="toast-notice" id="toastNotice">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2">
@@ -1215,12 +2268,12 @@
      * Right side (5 equal boxes): Myanmar, Thailand, UK, Prague, Los Angeles
      */
     const CITIES = {
-      hungary: { name: "Hungary", city: "Budapest", zone: "Europe/Budapest", flag: "🇭🇺" },
-      myanmar: { name: "Myanmar", city: "Yangon", zone: "Asia/Yangon", flag: "🇲🇲" },
-      thailand: { name: "Thailand", city: "Bangkok", zone: "Asia/Bangkok", flag: "🇹🇭" },
-      uk: { name: "United Kingdom", city: "London", zone: "Europe/London", flag: "🇬🇧" },
-      prague: { name: "Prague", city: "Prague", zone: "Europe/Prague", flag: "🇨🇿" },
-      la: { name: "Los Angeles", city: "Los Angeles", zone: "America/Los_Angeles", flag: "🇺🇸" }
+      hungary: { name: "Hungary", city: "Pécs", zone: "Europe/Budapest", flag: "🇭🇺", lat: 46.0727, lon: 18.2323 },
+      myanmar: { name: "Myanmar", city: "Yangon", zone: "Asia/Yangon", flag: "🇲🇲", lat: 16.8661, lon: 96.1951 },
+      thailand: { name: "Thailand", city: "Bangkok", zone: "Asia/Bangkok", flag: "🇹🇭", lat: 13.7563, lon: 100.5018 },
+      uk: { name: "United Kingdom", city: "Cardiff", zone: "Europe/London", flag: "🇬🇧", lat: 51.4816, lon: -3.1791 },
+      prague: { name: "Czech Republic", city: "Prague", zone: "Europe/Prague", flag: "🇨🇿", lat: 50.0755, lon: 14.4378 },
+      la: { name: "United States", city: "Los Angeles", zone: "America/Los_Angeles", flag: "🇺🇸", lat: 34.0522, lon: -118.2437 }
     };
 
     // Global State
@@ -1231,6 +2284,13 @@
     let liveTimer = null;
     let activeSourceCity = null;
     let toastTimeout = null;
+
+    // Weather State & Cache
+    const weatherCache = {};
+    const WEATHER_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes for fresher live readings
+    const weatherInFlight = {};
+    let activeWeatherModalCity = null;
+    let weatherRefreshTimer = null;
 
     const $ = id => document.getElementById(id);
 
@@ -1574,6 +2634,8 @@
       liveTimer = null;
       activeSourceCity = sourceCityId;
 
+      closeWeatherModal(); // Weather modal is closed and cannot be used in Convert mode
+
       document.body.classList.add("is-convert-mode");
       $("btnLiveMode").classList.remove("active-live");
       $("btnConvertMode").classList.add("active-convert");
@@ -1750,6 +2812,565 @@
     }
 
     /**
+     * WMO Weather Codes & Interpretation
+     */
+    const WMO_MAP = {
+      0: { desc: "Clear Sky", iconDay: "sun", iconNight: "moon" },
+      1: { desc: "Mainly Clear", iconDay: "sun", iconNight: "moon" },
+      2: { desc: "Partly Cloudy", iconDay: "cloud-sun", iconNight: "cloud-moon" },
+      3: { desc: "Overcast", iconDay: "cloud", iconNight: "cloud" },
+      45: { desc: "Foggy", iconDay: "fog", iconNight: "fog" },
+      48: { desc: "Rime Fog", iconDay: "fog", iconNight: "fog" },
+      51: { desc: "Light Drizzle", iconDay: "drizzle", iconNight: "drizzle" },
+      53: { desc: "Moderate Drizzle", iconDay: "drizzle", iconNight: "drizzle" },
+      55: { desc: "Dense Drizzle", iconDay: "drizzle", iconNight: "drizzle" },
+      56: { desc: "Freezing Drizzle", iconDay: "snow", iconNight: "snow" },
+      57: { desc: "Dense Freezing Drizzle", iconDay: "snow", iconNight: "snow" },
+      61: { desc: "Slight Rain", iconDay: "rain", iconNight: "rain" },
+      63: { desc: "Moderate Rain", iconDay: "rain", iconNight: "rain" },
+      65: { desc: "Heavy Rain", iconDay: "heavy-rain", iconNight: "heavy-rain" },
+      66: { desc: "Freezing Rain", iconDay: "snow", iconNight: "snow" },
+      67: { desc: "Heavy Freezing Rain", iconDay: "snow", iconNight: "snow" },
+      71: { desc: "Slight Snow", iconDay: "snow", iconNight: "snow" },
+      73: { desc: "Moderate Snow", iconDay: "snow", iconNight: "snow" },
+      75: { desc: "Heavy Snow", iconDay: "snow", iconNight: "snow" },
+      77: { desc: "Snow Grains", iconDay: "snow", iconNight: "snow" },
+      80: { desc: "Rain Showers", iconDay: "rain", iconNight: "rain" },
+      81: { desc: "Moderate Showers", iconDay: "rain", iconNight: "rain" },
+      82: { desc: "Violent Showers", iconDay: "heavy-rain", iconNight: "heavy-rain" },
+      85: { desc: "Snow Showers", iconDay: "snow", iconNight: "snow" },
+      86: { desc: "Heavy Snow Showers", iconDay: "snow", iconNight: "snow" },
+      95: { desc: "Thunderstorm", iconDay: "thunderstorm", iconNight: "thunderstorm" },
+      96: { desc: "Thunderstorm w/ Hail", iconDay: "thunderstorm", iconNight: "thunderstorm" },
+      99: { desc: "Heavy Thunderstorm", iconDay: "thunderstorm", iconNight: "thunderstorm" }
+    };
+
+    function getWeatherInfo(code, isDay = true) {
+      const entry = WMO_MAP[code] || { desc: "Partly Cloudy", iconDay: "cloud-sun", iconNight: "cloud-moon" };
+      const iconKey = isDay ? entry.iconDay : entry.iconNight;
+      return {
+        code,
+        desc: entry.desc,
+        iconKey
+      };
+    }
+
+    function createWeatherSvg(iconKey, size = 20) {
+      if (iconKey === "sun") {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`;
+      }
+      if (iconKey === "moon") {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+      }
+      if (iconKey === "cloud-sun") {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41" stroke="#f59e0b"/><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#94a3b8"/></svg>`;
+      }
+      if (iconKey === "cloud-moon") {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a5 5 0 0 0-4.5-4.95A7 7 0 0 0 7 13.5" stroke="#818cf8"/><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#94a3b8"/></svg>`;
+      }
+      if (iconKey === "cloud") {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg>`;
+      }
+      if (iconKey === "drizzle") {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 16H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#94a3b8"/><line x1="10" y1="18" x2="10" y2="20" stroke="#38bdf8"/><line x1="14" y1="18" x2="14" y2="20" stroke="#38bdf8"/></svg>`;
+      }
+      if (iconKey === "rain") {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 15H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#94a3b8"/><line x1="8" y1="17" x2="7" y2="21" stroke="#38bdf8"/><line x1="12" y1="17" x2="11" y2="21" stroke="#38bdf8"/><line x1="16" y1="17" x2="15" y2="21" stroke="#38bdf8"/></svg>`;
+      }
+      if (iconKey === "heavy-rain") {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 15H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#64748b"/><line x1="8" y1="17" x2="6" y2="22" stroke="#0284c7" stroke-width="2.2"/><line x1="12" y1="17" x2="10" y2="22" stroke="#0284c7" stroke-width="2.2"/><line x1="16" y1="17" x2="14" y2="22" stroke="#0284c7" stroke-width="2.2"/></svg>`;
+      }
+      if (iconKey === "snow") {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 16H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#94a3b8"/><line x1="10" y1="19" x2="10" y2="19.01" stroke="#bae6fd" stroke-width="3"/><line x1="14" y1="19" x2="14" y2="19.01" stroke="#bae6fd" stroke-width="3"/></svg>`;
+      }
+      if (iconKey === "fog") {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="10" x2="20" y2="10"/><line x1="6" y1="14" x2="18" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>`;
+      }
+      if (iconKey === "thunderstorm") {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 14H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" stroke="#94a3b8"/><polygon points="13 14 10 19 13 19 11 23 16 17 13 17" fill="#f59e0b" stroke="none"/></svg>`;
+      }
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/></svg>`;
+    }
+
+    function createRainDropSvg(size = 12) {
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="#38bdf8" stroke="none"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`;
+    }
+
+    /**
+     * Fetch JSON with timeout and automatic retry for transient network / rate-limit errors
+     */
+    async function fetchWeatherJsonWithRetry(url, retries = 2, timeoutMs = 14000) {
+      let lastErr = null;
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (res.ok) {
+            return await res.json();
+          }
+          // Retry on rate limit or server error
+          if (res.status === 429 || res.status >= 500) {
+            lastErr = new Error(`HTTP ${res.status}`);
+          } else {
+            throw new Error(`HTTP ${res.status}`);
+          }
+        } catch (err) {
+          clearTimeout(timeoutId);
+          lastErr = err;
+        }
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
+        }
+      }
+      throw lastErr || new Error("Weather fetch failed");
+    }
+
+    /**
+     * Fetch weather from Open-Meteo API
+     */
+    async function fetchCityWeather(cityId, forceRefresh = false) {
+      const city = CITIES[cityId];
+      if (!city) return null;
+
+      const parts = getZoneParts(currentInstant, city.zone);
+      const localDateStr = `${parts.year}-${parts.month}-${parts.day}`;
+
+      const cached = weatherCache[cityId];
+      if (!forceRefresh && cached && cached.data && (Date.now() - cached.timestamp < WEATHER_CACHE_TTL_MS) && cached.localDate === localDateStr) {
+        return cached.data;
+      }
+
+      if (weatherInFlight[cityId]) {
+        return weatherInFlight[cityId];
+      }
+
+      // Open-Meteo: free, no API key, CORS-enabled – works on GitHub Pages
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&models=best_match&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,relative_humidity_2m,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,apparent_temperature_max,apparent_temperature_min&timezone=${encodeURIComponent(city.zone)}&forecast_days=8`;
+
+      weatherInFlight[cityId] = (async () => {
+        try {
+          const data = await fetchWeatherJsonWithRetry(url, 2, 14000);
+          weatherCache[cityId] = {
+            data,
+            timestamp: Date.now(),
+            localDate: localDateStr
+          };
+          return data;
+        } catch (err) {
+          console.warn(`Weather fetch failed for ${cityId}:`, err);
+          // Fallback to stale cache if available so cards don't flip to Unavailable
+          return cached?.data || null;
+        } finally {
+          delete weatherInFlight[cityId];
+        }
+      })();
+
+      return weatherInFlight[cityId];
+    }
+
+    /**
+     * Update small weather summary on location card
+     */
+    function updateCardWeatherSummary(cityId, data) {
+      const city = CITIES[cityId];
+      if (!city) return;
+
+      const iconEl = $(`weather-icon-${cityId}`);
+      const tempEl = $(`weather-temp-${cityId}`);
+      const descEl = $(`weather-desc-${cityId}`);
+      const chipEl = $(`weather-summary-${cityId}`);
+
+      if (!chipEl) return;
+
+      if (!data) {
+        if (descEl) descEl.textContent = "Unavailable";
+        if (tempEl) tempEl.textContent = "--";
+        chipEl.title = `Weather unavailable for ${city.city} (click to retry)`;
+        return;
+      }
+
+      const parts = getZoneParts(currentInstant, city.zone);
+      const todayDateStr = `${parts.year}-${parts.month}-${parts.day}`;
+
+      // Calculate today's daily average temperature from actual hourly forecast data for that location's local day
+      const hourlyTimes = data.hourly?.time || [];
+      const hourlyTemps = data.hourly?.temperature_2m || [];
+      const todayHourlyTemps = [];
+
+      for (let i = 0; i < hourlyTimes.length; i++) {
+        if (hourlyTimes[i].startsWith(todayDateStr)) {
+          todayHourlyTemps.push(hourlyTemps[i]);
+        }
+      }
+
+      let dailyAvgTemp = 0;
+      if (todayHourlyTemps.length > 0) {
+        dailyAvgTemp = Math.round(todayHourlyTemps.reduce((s, t) => s + t, 0) / todayHourlyTemps.length);
+      } else if (data.daily?.temperature_2m_max?.length && data.daily?.temperature_2m_min?.length) {
+        dailyAvgTemp = Math.round((data.daily.temperature_2m_max[0] + data.daily.temperature_2m_min[0]) / 2);
+      }
+
+      // Today's daily weather condition
+      let dailyCode = 0;
+      const dailyTimes = data.daily?.time || [];
+      const dayIdx = dailyTimes.indexOf(todayDateStr);
+      if (dayIdx !== -1 && data.daily?.weather_code) {
+        dailyCode = data.daily.weather_code[dayIdx];
+      } else if (data.daily?.weather_code?.length) {
+        dailyCode = data.daily.weather_code[0];
+      }
+
+      const weatherInfo = getWeatherInfo(dailyCode, true);
+
+      if (iconEl) iconEl.innerHTML = createWeatherSvg(weatherInfo.iconKey, 20);
+      if (tempEl) tempEl.textContent = `${dailyAvgTemp}°C`;
+      if (descEl) descEl.textContent = weatherInfo.desc;
+      chipEl.title = `${getLocationDisplayName(city)} · ${weatherInfo.desc}, ${dailyAvgTemp}°C (Daily Average) · Click for full forecast`;
+    }
+
+    function getLocationDisplayName(city) {
+      return `${city.city}, ${city.name}`;
+    }
+
+    /**
+     * Load weather for all cities using a single batched Open-Meteo request (with per-city fallback)
+     */
+    async function loadAllCitiesWeather(force = false) {
+      const cityIds = Object.keys(CITIES);
+
+      // Check if all cities already have fresh cache
+      if (!force) {
+        const allFresh = cityIds.every(id => {
+          const city = CITIES[id];
+          const parts = getZoneParts(currentInstant, city.zone);
+          const localDateStr = `${parts.year}-${parts.month}-${parts.day}`;
+          const cached = weatherCache[id];
+          return cached && cached.data && (Date.now() - cached.timestamp < WEATHER_CACHE_TTL_MS) && cached.localDate === localDateStr;
+        });
+        if (allFresh) {
+          cityIds.forEach(id => {
+            updateCardWeatherSummary(id, weatherCache[id].data);
+            if (activeWeatherModalCity === id) renderWeatherModal(id, weatherCache[id].data);
+          });
+          return;
+        }
+      }
+
+      const lats = cityIds.map(id => CITIES[id].lat).join(",");
+      const lons = cityIds.map(id => CITIES[id].lon).join(",");
+      const zones = cityIds.map(id => encodeURIComponent(CITIES[id].zone)).join(",");
+      const batchUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&models=best_match&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,relative_humidity_2m,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,apparent_temperature_max,apparent_temperature_min&timezone=${zones}&forecast_days=8`;
+
+      try {
+        const results = await fetchWeatherJsonWithRetry(batchUrl, 2, 14000);
+        if (Array.isArray(results) && results.length === cityIds.length) {
+          const now = Date.now();
+          cityIds.forEach((id, idx) => {
+            const data = results[idx];
+            if (data && data.hourly) {
+              const parts = getZoneParts(currentInstant, CITIES[id].zone);
+              const localDateStr = `${parts.year}-${parts.month}-${parts.day}`;
+              weatherCache[id] = { data, timestamp: now, localDate: localDateStr };
+              updateCardWeatherSummary(id, data);
+              if (activeWeatherModalCity === id) renderWeatherModal(id, data);
+            }
+          });
+          return;
+        }
+      } catch (err) {
+        console.warn("Batch weather fetch failed, falling back to individual requests:", err);
+      }
+
+      await Promise.allSettled(cityIds.map(async id => {
+        const data = await fetchCityWeather(id, force);
+        updateCardWeatherSummary(id, data);
+        if (activeWeatherModalCity === id) {
+          renderWeatherModal(id, data);
+        }
+      }));
+    }
+
+    /**
+     * Open detailed weather modal (Live Clock View only)
+     */
+    function openWeatherModal(cityId) {
+      if (!isLiveMode) return; // STRICT RESTRICTION: Weather is clickable ONLY in Live Clock view!
+
+      const city = CITIES[cityId];
+      if (!city) return;
+
+      activeWeatherModalCity = cityId;
+      const backdrop = $("weatherModalBackdrop");
+      if (!backdrop) return;
+
+      // Header info
+      $("weatherModalFlag").textContent = city.flag;
+      $("weatherModalTitle").textContent = getLocationDisplayName(city);
+
+      const dateFmt = new Intl.DateTimeFormat("en-US", {
+        timeZone: city.zone,
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      });
+      $("weatherModalDate").textContent = `${dateFmt.format(currentInstant)} · Local Date`;
+
+      // Display modal
+      backdrop.classList.add("show");
+      backdrop.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+
+      // Render content from cache or show loading
+      const cached = weatherCache[cityId];
+      if (cached && cached.data) {
+        renderWeatherModal(cityId, cached.data);
+      } else {
+        $("weatherModalLoading").style.display = "flex";
+        $("weatherModalError").style.display = "none";
+        $("weatherModalContent").style.display = "none";
+
+        fetchCityWeather(cityId).then(data => {
+          if (activeWeatherModalCity === cityId) {
+            if (data) {
+              updateCardWeatherSummary(cityId, data);
+              renderWeatherModal(cityId, data);
+            } else {
+              $("weatherModalLoading").style.display = "none";
+              $("weatherModalContent").style.display = "none";
+              $("weatherModalError").style.display = "flex";
+            }
+          }
+        });
+      }
+    }
+
+    /**
+     * Close weather popup
+     */
+    function closeWeatherModal() {
+      const backdrop = $("weatherModalBackdrop");
+      if (!backdrop) return;
+      backdrop.classList.remove("show");
+      backdrop.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      activeWeatherModalCity = null;
+    }
+
+    /**
+     * Render hourly forecast cards for a given date into the scroll container.
+     * isToday: if true, marks the current local hour with "NOW" and auto-scrolls to it.
+     */
+    function renderHourlySection(data, dateStr, cityZone, isToday) {
+      const hourlyScroll = $("weatherHourlyScroll");
+      hourlyScroll.innerHTML = "";
+
+      const hourlyTimes = data.hourly?.time || [];
+      const hourlyTemps = data.hourly?.temperature_2m || [];
+      const hourlyFeelsLike = data.hourly?.apparent_temperature || [];
+      const hourlyPrecip = data.hourly?.precipitation_probability || [];
+      const hourlyCodes = data.hourly?.weather_code || [];
+      const hourlyWind = data.hourly?.wind_speed_10m || [];
+
+      const parts = isToday ? getZoneParts(currentInstant, cityZone) : null;
+      const currentLocalHour = isToday ? parseInt(parts.hour, 10) : -1;
+
+      let targetScrollElement = null;
+      let hasEntries = false;
+
+      for (let i = 0; i < hourlyTimes.length; i++) {
+        if (!hourlyTimes[i].startsWith(dateStr)) continue;
+        hasEntries = true;
+
+        const timeStr = hourlyTimes[i].split("T")[1];
+        const hourNum = parseInt(timeStr.split(":")[0], 10);
+        const isDayHour = hourNum >= 6 && hourNum < 18;
+        const entryInfo = getWeatherInfo(hourlyCodes[i] ?? 0, isDayHour);
+        const isCurrent = isToday && hourNum === currentLocalHour;
+
+        const temp = Math.round(hourlyTemps[i] ?? 0);
+        const precip = Math.round(hourlyPrecip[i] ?? 0);
+        const wind = Math.round(hourlyWind[i] ?? 0);
+
+        const card = document.createElement("div");
+        card.className = `hourly-card${isCurrent ? " is-current-hour" : ""}`;
+        if (isCurrent) targetScrollElement = card;
+
+        const rainClass = precip > 0 ? "hourly-precip has-rain" : "hourly-precip";
+
+        card.innerHTML = `
+          ${isCurrent ? '<span class="hourly-now-pill">NOW</span>' : ''}
+          <span class="hourly-time">${timeStr}</span>
+          <span class="hourly-icon">${createWeatherSvg(entryInfo.iconKey, 22)}</span>
+          <span class="hourly-temp">${temp}°C</span>
+          <span class="${rainClass}">${createRainDropSvg(10)} ${precip}%</span>
+          <span class="hourly-wind">💨 ${wind}</span>
+        `;
+        hourlyScroll.appendChild(card);
+      }
+
+      if (!hasEntries) {
+        hourlyScroll.innerHTML = `<div style="color:var(--text-muted);font-size:13px;padding:16px;">No hourly data available for this day.</div>`;
+      }
+
+      if (targetScrollElement) {
+        setTimeout(() => {
+          targetScrollElement.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        }, 120);
+      }
+    }
+
+    /**
+     * Render detailed contents of the weather modal
+     */
+    function renderWeatherModal(cityId, data) {
+      const city = CITIES[cityId];
+      if (!city || !data) return;
+
+      $("weatherModalLoading").style.display = "none";
+      $("weatherModalError").style.display = "none";
+      $("weatherModalContent").style.display = "block";
+
+      const parts = getZoneParts(currentInstant, city.zone);
+      const todayDateStr = `${parts.year}-${parts.month}-${parts.day}`;
+
+      // ── Daily data arrays ──
+      const hourlyTimes = data.hourly?.time || [];
+      const hourlyTemps = data.hourly?.temperature_2m || [];
+      const hourlyFeels = data.hourly?.apparent_temperature || [];
+      const hourlyHumid = data.hourly?.relative_humidity_2m || [];
+      const hourlyWind = data.hourly?.wind_speed_10m || [];
+      const dailyTimes = data.daily?.time || [];
+
+      // Gather today's hourly entries for hero stats
+      const todayTemps = [], todayFeels = [], todayHumid = [], todayWind = [];
+      for (let i = 0; i < hourlyTimes.length; i++) {
+        if (!hourlyTimes[i].startsWith(todayDateStr)) continue;
+        if (hourlyTemps[i] !== undefined) todayTemps.push(hourlyTemps[i]);
+        if (hourlyFeels[i] !== undefined) todayFeels.push(hourlyFeels[i]);
+        if (hourlyHumid[i] !== undefined) todayHumid.push(hourlyHumid[i]);
+        if (hourlyWind[i] !== undefined) todayWind.push(hourlyWind[i]);
+      }
+
+      let todayIdx = dailyTimes.indexOf(todayDateStr);
+      if (todayIdx === -1) todayIdx = 0;
+
+      const maxTemp = data.daily?.temperature_2m_max?.[todayIdx];
+      const minTemp = data.daily?.temperature_2m_min?.[todayIdx];
+      const dailyRainProb = data.daily?.precipitation_probability_max?.[todayIdx];
+      const dailyCode = data.daily?.weather_code?.[todayIdx] ?? 0;
+      const dailyMaxWind = data.daily?.wind_speed_10m_max?.[todayIdx];
+
+      const avg = arr => arr.length ? Math.round(arr.reduce((s, v) => s + v, 0) / arr.length) : null;
+      const max = arr => arr.length ? Math.round(Math.max(...arr)) : null;
+
+      const dailyAvgTemp = todayTemps.length ? avg(todayTemps) : (maxTemp !== undefined && minTemp !== undefined ? Math.round((maxTemp + minTemp) / 2) : 0);
+      const avgFeelsLike = todayFeels.length ? avg(todayFeels) : (data.daily?.apparent_temperature_max?.[todayIdx] !== undefined ? Math.round((data.daily.apparent_temperature_max[todayIdx] + (data.daily.apparent_temperature_min?.[todayIdx] ?? data.daily.apparent_temperature_max[todayIdx])) / 2) : null);
+      const avgHumidity = avg(todayHumid);
+      const maxWindSpeed = dailyMaxWind !== undefined ? Math.round(dailyMaxWind) : max(todayWind);
+
+      const currentTempVal = data.current?.temperature_2m !== undefined ? Math.round(data.current.temperature_2m) : null;
+      const currentFeelsVal = data.current?.apparent_temperature !== undefined ? Math.round(data.current.apparent_temperature) : avgFeelsLike;
+      const currentHumidVal = data.current?.relative_humidity_2m !== undefined ? Math.round(data.current.relative_humidity_2m) : avgHumidity;
+      const currentWindVal = data.current?.wind_speed_10m !== undefined ? Math.round(data.current.wind_speed_10m) : maxWindSpeed;
+
+      const heroCode = data.current?.weather_code !== undefined ? data.current.weather_code : dailyCode;
+      const heroIsDay = data.current?.is_day !== undefined ? data.current.is_day === 1 : true;
+      const weatherInfo = getWeatherInfo(heroCode, heroIsDay);
+
+      // ── Section 1: Hero – Daily Summary ──
+      $("weatherHeroIcon").innerHTML = createWeatherSvg(weatherInfo.iconKey, 34);
+      $("weatherHeroAvgTemp").textContent = `${dailyAvgTemp}°C`;
+      $("weatherHeroDesc").textContent = weatherInfo.desc;
+      $("weatherHeroCurrentTemp").textContent = currentTempVal !== null ? `${currentTempVal}°C` : `${dailyAvgTemp}°C`;
+      $("weatherHeroHighLow").textContent = `${Math.round(maxTemp ?? dailyAvgTemp)}° / ${Math.round(minTemp ?? dailyAvgTemp)}°`;
+      $("weatherHeroRainProb").innerHTML = `${createRainDropSvg(12)} ${dailyRainProb ?? 0}%`;
+      $("weatherHeroFeelsLike").textContent = currentFeelsVal !== null ? `${currentFeelsVal}°C` : "--°C";
+      $("weatherHeroHumidity").textContent = currentHumidVal !== null ? `${currentHumidVal}%` : "--%";
+      $("weatherHeroWind").textContent = currentWindVal !== null ? `${currentWindVal} km/h` : "-- km/h";
+
+      // ── Section 2: Hourly Forecast – render today by default ──
+      $("weatherHourlyTitle").textContent = "Today's Hourly Forecast";
+      $("weatherHourlyDateBadge").textContent = todayDateStr;
+      renderHourlySection(data, todayDateStr, city.zone, true);
+
+      // ── Section 3: 7-Day Forecast with clickable rows ──
+      const weeklyList = $("weatherWeeklyList");
+      weeklyList.innerHTML = "";
+
+      const startIdx = todayIdx >= 0 ? todayIdx : 0;
+      const count = Math.min(7, dailyTimes.length - startIdx);
+      let selectedRow = null;
+
+      for (let offset = 0; offset < count; offset++) {
+        const dIdx = startIdx + offset;
+        const dateStr = dailyTimes[dIdx];
+        const [y, m, d] = dateStr.split("-").map(Number);
+        const dateObj = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+
+        const dayName = offset === 0
+          ? "Today"
+          : new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(dateObj);
+        const dateSub = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(dateObj);
+
+        const dCode = data.daily?.weather_code?.[dIdx] ?? 0;
+        const dInfo = getWeatherInfo(dCode, true);
+        const dMax = Math.round(data.daily?.temperature_2m_max?.[dIdx] ?? 0);
+        const dMin = Math.round(data.daily?.temperature_2m_min?.[dIdx] ?? 0);
+        const dRain = Math.round(data.daily?.precipitation_probability_max?.[dIdx] ?? 0);
+        const isRain = dRain > 0;
+
+        const row = document.createElement("div");
+        // Today's row starts selected; also keep .is-today for colour hint
+        row.className = `weekly-row${offset === 0 ? " is-today is-selected" : ""}`;
+        if (offset === 0) selectedRow = row;
+
+        row.setAttribute("title", `Click to see ${offset === 0 ? "today's" : dayName + "'s"} 24-hour forecast`);
+
+        row.innerHTML = `
+          <div class="weekly-day-col">
+            <span class="weekly-day-name">${dayName}</span>
+            <span class="weekly-date-sub">${dateSub}</span>
+          </div>
+          <div class="weekly-condition-col">
+            <span class="weekly-icon">${createWeatherSvg(dInfo.iconKey, 22)}</span>
+            <span class="weekly-desc">${dInfo.desc}</span>
+          </div>
+          <div class="weekly-precip-col">
+            <span class="weekly-precip${isRain ? " has-rain" : ""}">${createRainDropSvg(11)} ${dRain}%</span>
+          </div>
+          <div class="weekly-temp-col">
+            <span class="weekly-temp-max">${dMax}°</span>
+            <span class="weekly-temp-slash">/</span>
+            <span class="weekly-temp-min">${dMin}°</span>
+          </div>
+        `;
+
+        // Click: switch hourly panel to this day
+        row.addEventListener("click", () => {
+          // Clear selection from all rows
+          weeklyList.querySelectorAll(".weekly-row").forEach(r => r.classList.remove("is-selected"));
+          row.classList.add("is-selected");
+
+          // Update hourly section title
+          const isToday = offset === 0;
+          $("weatherHourlyTitle").textContent = isToday ? "Today's Hourly Forecast" : `${dayName}'s Hourly Forecast`;
+          $("weatherHourlyDateBadge").textContent = dateStr;
+
+          // Re-render hourly cards for selected day
+          renderHourlySection(data, dateStr, city.zone, isToday);
+
+          // Scroll hourly section into view on mobile
+          $("weatherHourlyScroll").scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+
+        weeklyList.appendChild(row);
+      }
+    }
+
+    /**
      * Setup events and keyboard listeners
      */
     function initEvents() {
@@ -1850,12 +3471,78 @@
           }
         });
       });
+
+      // Weather Summary Click & Key Listeners (Live Clock View ONLY)
+      for (const id of Object.keys(CITIES)) {
+        const chip = $(`weather-summary-${id}`);
+        if (chip) {
+          chip.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (!isLiveMode) return;
+            openWeatherModal(id);
+          });
+          chip.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              if (!isLiveMode) return;
+              openWeatherModal(id);
+            }
+          });
+        }
+      }
+
+      // Weather Modal Close Button
+      const modalCloseBtn = $("weatherModalCloseBtn");
+      if (modalCloseBtn) {
+        modalCloseBtn.addEventListener("click", closeWeatherModal);
+      }
+
+      // Weather Modal Backdrop Click
+      const modalBackdrop = $("weatherModalBackdrop");
+      if (modalBackdrop) {
+        modalBackdrop.addEventListener("click", (e) => {
+          if (e.target === modalBackdrop) {
+            closeWeatherModal();
+          }
+        });
+      }
+
+      // Keyboard Esc to Close Weather Modal
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && activeWeatherModalCity) {
+          closeWeatherModal();
+        }
+      });
+
+      // Weather Modal Retry Button
+      const retryBtn = $("weatherRetryBtn");
+      if (retryBtn) {
+        retryBtn.addEventListener("click", () => {
+          if (activeWeatherModalCity) {
+            $("weatherModalLoading").style.display = "flex";
+            $("weatherModalError").style.display = "none";
+            fetchCityWeather(activeWeatherModalCity, true).then(data => {
+              if (data) {
+                updateCardWeatherSummary(activeWeatherModalCity, data);
+                renderWeatherModal(activeWeatherModalCity, data);
+              } else {
+                $("weatherModalLoading").style.display = "none";
+                $("weatherModalError").style.display = "flex";
+              }
+            });
+          }
+        });
+      }
     }
 
     // Startup
     initEvents();
     renderAllBoxes(new Date());
     fetchOnlineTime();
+    loadAllCitiesWeather();
+    weatherRefreshTimer = setInterval(() => {
+      loadAllCitiesWeather(true);
+    }, 25 * 60 * 1000);
   </script>
 </body>
 
